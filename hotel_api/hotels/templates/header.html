@@ -1,0 +1,73 @@
+{% load static %}
+<!-- header start -->
+<header class="header">
+    <div class="container-fluid">
+        <div class="row align-items-center">
+            <!-- Logo -->
+            <div class="col-lg-2 col-md-4 col-sm-4 col-xs-4 text-center" id="logo_left">
+                <a href="#"><img src="{% static 'hotels/images/hotel_logo.png' %}" alt="Hotel" width="80%"></a>
+            </div>
+
+            <!-- Phone and Email -->
+            <div class="col-lg-8 col-md-4 col-sm-4 col-xs-4 text-center">
+                <nav class="menu">
+                    <div class="mobile-menu-head">
+                        <div class="go-back"><i class="fa fa-angle-left"></i></div>
+                        <div class="current-menu-title"></div>
+                        <div class="mobile-menu-close">&times;</div>
+                    </div>
+
+                    <ul class="menu-main">
+                        <li class="menu-item-has-children">
+                            <a href="#">Home</a>
+                        </li>
+
+                        <li class="menu-item-has-children">
+                            <a href="#">About</a>
+                        </li>
+
+                        <li class="menu-item-has-children">
+                            <a href="#">Map</a>
+                            <!-- <div class="sub-menu single-column-menu">
+                                    <ul>
+                                        <li><a href="" style="font-weight: 600;">Business Class Room</a></li>
+                                        <li><a href="" style="font-weight: 600;">Suite Class Room</a></li>
+                                        <li><a href="" style="font-weight: 600;">Twin Bed Room</a></li>
+                                    </ul>
+                                </div> -->
+                        </li>
+
+                        <!--<li class="menu-item-has-children">
+                                <a href="">Facilities</a>
+                            </li>-->
+
+                        <li class="menu-item-has-children">
+                            <a href="#">Add-on Services</a>
+                        </li>
+
+                        <li class="menu-item-has-children">
+                            <a href="#">Packages</a>
+                        </li>
+                    </ul>
+                </nav>
+
+                <div class="mobile-menu-trigger">
+                    <span></span>
+                </div>
+            </div>
+
+            <!-- Book Now Button -->
+            <div class="col-lg-2 col-md-4 col-sm-4 col-xs-4 text-center" id="button_right">
+                <a href="#">
+                    <button class="btn btn-primary" id="free_assessment">Book Now</button>
+                </a>
+            </div>
+        </div>
+    </div>
+</header>
+<!-- header end -->
+
+<!-- Scroll to Top Button -->
+<!-- <button onclick="topFunction()" id="scrollTopBtn" title="Go to top"><i class="fa fa-plane"></i></button> -->
+
+<!-- <script src="../js/script.js"></script> -->

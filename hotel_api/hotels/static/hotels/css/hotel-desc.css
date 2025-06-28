@@ -1,0 +1,73 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+#hotel-outer-container {
+    padding: 0;
+    position: relative;
+}
+
+#hotel-image {
+    height: 400px;
+    width: 100%;
+    object-fit: cover;
+}
+
+#background-overlay {
+    width: 100%;
+    height: 400px;
+    position: absolute;
+    background-color: rgba(30, 29, 29, 0.59);
+    content: ' ';
+    top: 0;
+    bottom: 0;
+}
+
+#hotel-name {
+    font-family: 'Dancing Script';
+    color: #FAFFD8;
+    text-align: center;
+    position: absolute;
+    width: 100%;
+    top: 40%;
+    font-size: 50px;
+}
+
+#check-form-container {
+    position: absolute;
+    bottom: 15%;
+    z-index: 1;
+    width: 100%;
+}
+
+#check-form-container form {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 25px;
+    font-family: 'Dancing Script';
+}
+
+.check-form-field {
+    display: flex;
+    flex-direction: column;
+    color: #FAFFD8;
+}
+
+.check-form-field input{
+    font-family: 'Playfair Display';
+}
+
+#check-button {
+    visibility: hidden;
+    content: ' ';
+}
+
+.check-form-field button {
+    padding: 8px 10px;
+    border-radius: 5px;
+    border: 0;
+    font-family: 'Playfair Display';
+}

@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block link %}
+<link rel="stylesheet" href="{% static 'hotels/css/hotel-desc.css' %}">
+{% endblock %}
+{% block title %} IN KASHMIR {% endblock title %}
+{% block body %}
+<div id="hotel-outer-container" class="container-fluid">
+    <div>
+        <img id="hotel-image" src="{{hotel.images.image.url}}">
+        <div id="check-form-container">
+            <form action="">
+                <div class="check-form-field">
+                    <label for="">Check In</label>
+                    <input id="check-in-input" class="form-control" type="date">
+                </div>
+
+                <div class="check-form-field">
+                    <label for="">Check Out</label>
+                    <input id="check-out-input" class="form-control" type="date">
+                </div>
+
+                <div class="check-form-field">
+                    <label for="" id="check-button">Check Button</label>
+                    <button onclick="CheckAvailability(event)">Check Availability</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="background-overlay">
+        <h1 id="hotel-name">Welcome to {{hotel.name}}</h1>
+    </div>
+</div>
+
+<script>
+    function CheckAvailability(event) {
+        event.preventDefault();
+        check_in = document.getElementById('check-in-input');
+        check_out = document.getElementById('check-out-input');
+        data = {
+            'check_in': check_in,
+            'check_out': check_out,
+        }
+
+        fetch('', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.parse(data),
+        })
+    }
+</script>
+{% endblock %}
