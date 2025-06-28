@@ -1,10 +1,9 @@
 from django.db import models
-from payment.models import Payment
 # Create your models here.
 
 class Meal(models.Model):
     date = models.DateField()
-    meal_type = models.CharField(max_length=20, choices=MEAL_TYPES)
+    meal_type = models.CharField(max_length=20)
     price = models.DecimalField(max_digits=6, decimal_places=2)
     
     class Meta:
@@ -21,7 +20,7 @@ class Booking(models.Model):
     check_out = models.DateField()
 
     meal_type = models.ForeignKey(
-        Meal_Type, null=True, on_delete=models.SET_NULL)
+        Meal, null=True, on_delete=models.SET_NULL)
     no_of_days = models.IntegerField(null=True, blank=True, default=1)
     price_per_night = models.FloatField(default=0.0)
     no_of_room = models.IntegerField(default=1)
@@ -30,6 +29,10 @@ class Booking(models.Model):
 
     total_adults = models.IntegerField(default=1)
     total_children = models.IntegerField(default=0)
+    
+    def get_payment(self):
+        Payment = apps.get_model('payment', 'Payment')
+        return Payment.objects.filter(booking=self)
 
     def save(self, *args, **kwargs):
         self.no_of_days = (self.check_out-self.check_in).days

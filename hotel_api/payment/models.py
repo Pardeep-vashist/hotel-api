@@ -2,7 +2,7 @@ from django.db import models
 from booking.models import Booking
 # Create your models here.
 class Payment(models.Model):
-    user = models.ForeignKey(CustomUser,on_delete=models.SET_NULL,null=True)
+    # user = models.ForeignKey(CustomUser,on_delete=models.SET_NULL,null=True)
     booking = models.ForeignKey('Booking.Booking',on_delete=models.SET_NULL,null=True,blank=True,related_name="payment_after_booking")
     payment_status = models.CharField(max_length=128,default="PAYMENT INITIATED")
     transaction_id = models.CharField(max_length=128,blank=True,null=True)
