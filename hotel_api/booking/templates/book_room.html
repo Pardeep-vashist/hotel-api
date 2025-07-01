@@ -1,0 +1,254 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Book Room{% endblock %}
+
+{% block body %}
+<div class="container mt-5">
+    <h2>Book Room: {{ room.name }}</h2>
+    <!-- Display labels (will update dynamically) -->
+    <div class="d-flex" style="gap: 100px;">
+        <p><strong>Check-in:</strong> <span id="check_in_display">{{ check_in }}</span></p>
+        <p><strong>Check-out:</strong> <span id="check_out_display">{{ check_out }}</span></p>
+    </div>
+
+    <!-- Editable date inputs -->
+    <div class="row g-3 mb-3">
+        <div class="col-md-6">
+            <label class="form-label"><b>Select Check-in Date:</b></label>
+            <input type="date" id="check_in_input" class="form-control" value="{{ check_in }}" required>
+        </div>
+        
+        <div class="col-md-6">
+            <label class="form-label"><b>Select Check-out Date:</b></label>
+            <input type="date" id="check_out_input" class="form-control" value="{{ check_out }}" required>
+        </div>
+    </div>
+
+    <form method="post" action="{% url 'confirm-booking' %}">
+        {% csrf_token %}
+        <input type="hidden" name="room_id" value="{{ room.id }}">
+        <input type="hidden" name="check_in" id="check_in_hidden" value="{{ check_in }}">
+        <input type="hidden" name="check_out" id="check_out_hidden" value="{{ check_out }}">
+
+        <!-- Rooms, Adults, Children in a row -->
+        <div class="row g-4">
+            <!-- Room Block Column -->
+            <div class="col-md-6">
+                <div id="room-blocks">
+                    <div class="room-block mb-4" data-room="1">
+                        <h5 class="mb-3"><b>Room 1</b></h5>
+                        <div class="row g-3">
+                            <!-- Adults -->
+                            <div class="col-md-6 col-lg-4">
+                                <label class="form-label"><b>Adults:</b></label>
+                                <div class="d-flex align-items-center">
+                                    <button type="button" class="btn btn-outline-secondary me-2 adults-minus">−</button>
+                                    <input name="adults_1" type="number" class="form-control text-center adults-input" value="1" min="1" max="{{room.total_adults}}" readonly style="max-width: 80px;">
+                                    <button type="button" class="btn btn-outline-secondary ms-2 adults-plus">+</button>
+                                </div>
+                                <small class="text-muted">Max 2 per room</small>
+                            </div>
+
+                            <!-- Children -->
+                            <div class="col-md-6 col-lg-4">
+                                <label class="form-label"><b>Children:</b></label>
+                                <div class="d-flex align-items-center">
+                                    <button type="button" class="btn btn-outline-secondary me-2 children-minus">−</button>
+                                    <input name="children_1" type="number" class="form-control text-center children-input" value="0" min="0" max="{{room.total_children}}" readonly style="max-width: 80px;">
+                                    <button type="button" class="btn btn-outline-secondary ms-2 children-plus">+</button>
+                                </div>
+                                <small class="text-muted">Max 2 per room</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Add Room Button -->
+                <div class="mb-3">
+                    <button type="button" class="btn btn-info" id="add-room-btn">Add Room</button>
+                    <div id="room-limit-msg" class="text-danger mt-2" style="display: none;">Maximum 5 rooms allowed.</div>
+                </div>
+
+                <!-- Warning Message -->
+                <div id="message" class="text-danger mb-3" style="display:none;">
+                    <strong>Note:</strong> Max 2 adults & 2 children per room. Add rooms to accommodate more guests.
+                </div>
+            </div>
+
+            <!-- Form Column -->
+            <div class="col-md-6">
+                <!-- Name Row -->
+                <div class="row g-3 mb-3">
+                    <div class="col-12">
+                        <label class="form-label"><b>First Name:</b></label>
+                        <input name="first_name" class="form-control" required>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label"><b>Last Name:</b></label>
+                        <input name="last_name" class="form-control" required>
+                    </div>
+                </div>
+
+                <!-- Contact Row -->
+                <div class="row g-3 mb-3">
+                    <div class="col-12">
+                        <label class="form-label"><b>Email:</b></label>
+                        <input name="email" type="email" class="form-control" required>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label"><b>Phone:</b></label>
+                        <input name="phone" type="text" class="form-control" required>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="row">
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-success w-100">Confirm Booking</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- JavaScript -->
+<script>
+    // change check-in and check-out dates
+    document.addEventListener('DOMContentLoaded', () => {
+        // ✅ Date Sync Setup
+        const inInput = document.getElementById('check_in_input'),
+                outInput = document.getElementById('check_out_input'),
+                inHidden = document.getElementById('check_in_hidden'),
+                outHidden = document.getElementById('check_out_hidden'),
+                inDisplay = document.getElementById('check_in_display'),
+                outDisplay = document.getElementById('check_out_display');
+
+        function syncDates() {
+            inHidden.value = inInput.value;
+            outHidden.value = outInput.value;
+            inDisplay.textContent = inInput.value;
+            outDisplay.textContent = outInput.value;
+        }
+
+        inInput.addEventListener('change', syncDates);
+        outInput.addEventListener('change', syncDates);
+    });
+
+    // Add Room Functionality
+    document.addEventListener('DOMContentLoaded', function () {
+        const maxRooms = parseInt('{{ max_rooms|default:"5" }}');
+        const roomBlocksContainer = document.getElementById('room-blocks');
+        const addRoomBtn = document.getElementById('add-room-btn');
+        const message = document.getElementById('message');
+        const roomLimitMsg = document.getElementById('room-limit-msg');
+        let roomCount = roomBlocksContainer.querySelectorAll('.room-block').length;
+
+        if (!roomBlocksContainer || !addRoomBtn) {
+            console.error("❌ Required DOM elements not found!");
+            return;
+        }
+
+        // Bind +/− buttons for a given room block
+        function bindRoomEvents(roomEl) {
+            const adultsInput = roomEl.querySelector('.adults-input');
+            const childrenInput = roomEl.querySelector('.children-input');
+            const adultsPlus = roomEl.querySelector('.adults-plus');
+            const adultsMinus = roomEl.querySelector('.adults-minus');
+            const childrenPlus = roomEl.querySelector('.children-plus');
+            const childrenMinus = roomEl.querySelector('.children-minus');
+
+            adultsPlus.addEventListener('click', () => {
+                let val = parseInt(adultsInput.value);
+                if (val < "{{room.total_adults}}") adultsInput.value = val + 1;
+                updateMessage();
+            });
+
+            adultsMinus.addEventListener('click', () => {
+                let val = parseInt(adultsInput.value);
+                if (val > 1) adultsInput.value = val - 1;
+                updateMessage();
+            });
+
+            childrenPlus.addEventListener('click', () => {
+                let val = parseInt(childrenInput.value);
+                if (val < "{{room.total_children}}") childrenInput.value = val + 1;
+                updateMessage();
+            });
+
+            childrenMinus.addEventListener('click', () => {
+                let val = parseInt(childrenInput.value);
+                if (val > 0) childrenInput.value = val - 1;
+                updateMessage();
+            });
+        }
+
+        // Update error message if over limits
+        // function updateMessage() {
+        //     let totalAdults = 0;
+        //     let totalChildren = 0;
+        //     const allRooms = roomBlocksContainer.querySelectorAll('.room-block');
+
+        //     allRooms.forEach(room => {
+        //         totalAdults += parseInt(room.querySelector('.adults-input').value || 0);
+        //         totalChildren += parseInt(room.querySelector('.children-input').value || 0);
+        //     });
+
+        //     const maxAdults = roomCount * 2;
+        //     const maxChildren = roomCount * 2;
+
+        //     if (totalAdults > maxAdults || totalChildren > maxChildren) {
+        //         message.style.display = 'block';
+        //     } else {
+        //         message.style.display = 'none';
+        //     }
+        // }
+
+        // Handle Add Room
+        addRoomBtn.addEventListener('click', async () => {
+            const check_in = document.getElementById('check_in_input').value;
+            const check_out = document.getElementById('check_out_input').value;
+
+            room_id = document.getElementsByName('room_id')[0].value;
+            getRoom = await fetch(`/api/add-room/?room_id=${room_id}&check_in=${check_in}&check_out=${check_out}`)
+            room_data = await getRoom.json();
+            console.log(room_data);
+            // console.log(getRoom);
+
+        //     if (roomCount >= maxRooms) {
+        //         roomLimitMsg.style.display = 'block';
+        //         return;
+        //     }
+
+        //     const firstRoom = roomBlocksContainer.querySelector('.room-block');
+        //     const newRoom = firstRoom.cloneNode(true);
+
+        //     roomCount++;
+        //     roomLimitMsg.style.display = 'none';
+
+        //     // Update room heading
+        //     newRoom.querySelector('h5').innerText = `Room ${roomCount}`;
+        //     newRoom.setAttribute('data-room', roomCount);
+
+        //     // Update input names and reset values
+        //     const adultsInput = newRoom.querySelector('.adults-input');
+        //     adultsInput.name = `adults_${roomCount}`;
+        //     adultsInput.value = 1;
+
+        //     const childrenInput = newRoom.querySelector('.children-input');
+        //     childrenInput.name = `children_${roomCount}`;
+        //     childrenInput.value = 0;
+
+        //     roomBlocksContainer.appendChild(newRoom);
+        //     bindRoomEvents(newRoom);
+        //     updateMessage();
+        });
+
+        // // Initial room binding
+        // bindRoomEvents(document.querySelector('.room-block'));
+        // updateMessage();
+    });
+</script>
+
+{% endblock %}

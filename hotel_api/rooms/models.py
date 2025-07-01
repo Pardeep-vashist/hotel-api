@@ -18,7 +18,9 @@ class Amenity(models.Model):
 class RoomType(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True, null=True)
-    capacity = models.IntegerField()
+    total_rooms = models.IntegerField()
+    total_adults = models.IntegerField(null=True,blank=True)
+    total_children = models.IntegerField(null=True,blank=True)
     price_per_night = models.DecimalField(max_digits=10, decimal_places=2)
     image = models.ManyToManyField(RoomType_Images)
     amenities = models.ManyToManyField(Amenity)
