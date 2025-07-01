@@ -3,53 +3,107 @@
 {% block link %}
 <link rel="stylesheet" href="{% static 'hotels/css/hotel-desc.css' %}">
 {% endblock %}
-{% block title %} IN KASHMIR {% endblock title %}
+{% block title %}IN KASHMIR{% endblock title %}
 {% block body %}
-<div id="hotel-outer-container" class="container-fluid">
-    <div>
-        <img id="hotel-image" src="{{hotel.images.image.url}}">
-        <div id="check-form-container">
-            <form action="">
-                <div class="check-form-field">
-                    <label for="">Check In</label>
-                    <input id="check-in-input" class="form-control" type="date">
-                </div>
+    <div id="hotel-outer-container" class="container-fluid">
+        <div>
+            <img id="hotel-image" src="{{hotel.images.image.url}}">
+            <div id="check-form-container">
+                <form id="availability-form" onsubmit="CheckAvailability(event)">
+                    <div class="check-form-field">
+                        <label for="check-in-input">Check In</label>
+                        <input id="check-in-input" class="form-control" type="date" required>
+                    </div>
 
-                <div class="check-form-field">
-                    <label for="">Check Out</label>
-                    <input id="check-out-input" class="form-control" type="date">
-                </div>
+                    <div class="check-form-field">
+                        <label for="check-out-input">Check Out</label>
+                        <input id="check-out-input" class="form-control" type="date" required>
+                    </div>
 
-                <div class="check-form-field">
-                    <label for="" id="check-button">Check Button</label>
-                    <button onclick="CheckAvailability(event)">Check Availability</button>
-                </div>
-            </form>
+                    <div class="check-form-field">
+                        <label for="" id="check-button">Check Availability</label>
+                        <button type="submit">Check Availability</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div id="background-overlay">
+            <h1 id="hotel-name">Welcome to {{hotel.name}}</h1>
         </div>
     </div>
 
-    <div id="background-overlay">
-        <h1 id="hotel-name">Welcome to {{hotel.name}}</h1>
+    <div id="available-rooms" class="container mt-5" style="box-shadow: 0 -2px 8px rgba(0,0,0,0.2);">
+        <div class="row" id="rooms-row">
+            <!-- Available rooms will be injected here as col-md-4 cards -->
+        </div>
     </div>
-</div>
 
-<script>
-    function CheckAvailability(event) {
-        event.preventDefault();
-        check_in = document.getElementById('check-in-input');
-        check_out = document.getElementById('check-out-input');
-        data = {
-            'check_in': check_in,
-            'check_out': check_out,
+    <script>
+        function displayAvailableRooms(rooms, check_in, check_out) {
+            const roomsRow = document.getElementById('rooms-row');
+            roomsRow.innerHTML = ''; // Clear previous rooms
+
+            if (rooms.length === 0) {
+                roomsRow.innerHTML = `<p class="text-center w-100">No rooms available for selected dates.</p>`;
+                return;
+            }
+
+            rooms.forEach(room => {
+                const roomCol = document.createElement('div');
+                roomCol.className = 'col-md-4 mb-3';
+
+                const imageSrc = room.image.length > 0 ? room.image[0] : 'https://via.placeholder.com/300x200';
+
+                roomCol.innerHTML = `
+                    <div class="card h-100">
+                        <img src="${imageSrc}" class="card-img-top" alt="${room.name}">
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title"><b>${room.name}</b></h5>
+                            <p class="card-text">${room.description}</p>
+                            <p class="card-text"><strong>Price:</strong> ₹${room.price_per_night}</p>
+                            <div class="mt-auto">
+                                <a href="/book-room/?room_id=${room.id}&check_in=${check_in}&check_out=${check_out}" class="btn btn-primary">Book Now</a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                roomsRow.appendChild(roomCol);
+            });
         }
 
-        fetch('', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.parse(data),
-        })
-    }
-</script>
+
+        function CheckAvailability(event) {
+            event.preventDefault();
+
+            const check_in = document.getElementById('check-in-input').value;
+            const check_out = document.getElementById('check-out-input').value;
+
+            if (!check_in || !check_out) {
+                alert('Please select both check-in and check-out dates.');
+                return;
+            }
+
+            // Show loading message inside rooms-row, not replacing the whole container
+            const roomsRow = document.getElementById('rooms-row');
+            roomsRow.innerHTML = `<p class="text-center w-100">Loading available rooms...</p>`;
+
+            fetch(`/api/check-availability/?check_in=${check_in}&check_out=${check_out}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        roomsRow.innerHTML = `<p class="text-danger text-center w-100">Error: ${data.error}</p>`;
+                    } else if (Array.isArray(data)) {
+                        displayAvailableRooms(data, check_in, check_out);
+                    } else {
+                        roomsRow.innerHTML = `<p class="text-center w-100">No rooms available for selected dates.</p>`;
+                    }
+                })
+
+                .catch(error => {
+                    console.error('Error fetching availability:', error);
+                    roomsRow.innerHTML = '<p class="text-danger text-center w-100">Error checking availability.</p>';
+                });
+        }
+    </script>
 {% endblock %}

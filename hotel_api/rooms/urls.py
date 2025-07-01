@@ -9,5 +9,4 @@ urlpatterns = [
     path('api/check-availability/', check_availability, name='check_availability'),
     path('book-room/', views.book_room_view, name='book-room'),
     path('confirm-booking/', views.confirm_booking_view, name='confirm-booking'),
-    path('api/add-room', views.check_roomtype_availability, name='add_room'),
 ]

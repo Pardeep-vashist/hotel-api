@@ -47,7 +47,7 @@
                                     <input name="adults_1" type="number" class="form-control text-center adults-input" value="1" min="1" max="{{room.total_adults}}" readonly style="max-width: 80px;">
                                     <button type="button" class="btn btn-outline-secondary ms-2 adults-plus">+</button>
                                 </div>
-                                <small class="text-muted">Max 2 per room</small>
+                                <small class="text-muted">Max {{room.total_adults}} per room</small>
                             </div>
 
                             <!-- Children -->
@@ -58,7 +58,7 @@
                                     <input name="children_1" type="number" class="form-control text-center children-input" value="0" min="0" max="{{room.total_children}}" readonly style="max-width: 80px;">
                                     <button type="button" class="btn btn-outline-secondary ms-2 children-plus">+</button>
                                 </div>
-                                <small class="text-muted">Max 2 per room</small>
+                                <small class="text-muted">Max {{room.total_children}} per room</small>
                             </div>
                         </div>
                     </div>
@@ -72,7 +72,7 @@
 
                 <!-- Warning Message -->
                 <div id="message" class="text-danger mb-3" style="display:none;">
-                    <strong>Note:</strong> Max 2 adults & 2 children per room. Add rooms to accommodate more guests.
+                    <strong>Note:</strong> Max {{room.total_adults}} adults & {{room.total_children}} children per room. Add rooms to accommodate more guests.
                 </div>
             </div>
 
@@ -185,69 +185,60 @@
         }
 
         // Update error message if over limits
-        // function updateMessage() {
-        //     let totalAdults = 0;
-        //     let totalChildren = 0;
-        //     const allRooms = roomBlocksContainer.querySelectorAll('.room-block');
+        function updateMessage() {
+            let totalAdults = 0;
+            let totalChildren = 0;
+            const allRooms = roomBlocksContainer.querySelectorAll('.room-block');
 
-        //     allRooms.forEach(room => {
-        //         totalAdults += parseInt(room.querySelector('.adults-input').value || 0);
-        //         totalChildren += parseInt(room.querySelector('.children-input').value || 0);
-        //     });
+            allRooms.forEach(room => {
+                totalAdults += parseInt(room.querySelector('.adults-input').value || 0);
+                totalChildren += parseInt(room.querySelector('.children-input').value || 0);
+            });
 
-        //     const maxAdults = roomCount * 2;
-        //     const maxChildren = roomCount * 2;
+            const maxAdults = roomCount * 2;
+            const maxChildren = roomCount * 2;
 
-        //     if (totalAdults > maxAdults || totalChildren > maxChildren) {
-        //         message.style.display = 'block';
-        //     } else {
-        //         message.style.display = 'none';
-        //     }
-        // }
+            if (totalAdults > maxAdults || totalChildren > maxChildren) {
+                message.style.display = 'block';
+            } else {
+                message.style.display = 'none';
+            }
+        }
 
         // Handle Add Room
-        addRoomBtn.addEventListener('click', async () => {
-            const check_in = document.getElementById('check_in_input').value;
-            const check_out = document.getElementById('check_out_input').value;
+        addRoomBtn.addEventListener('click', () => {
+            if (roomCount >= maxRooms) {
+                roomLimitMsg.style.display = 'block';
+                return;
+            }
 
-            room_id = document.getElementsByName('room_id')[0].value;
-            getRoom = await fetch(`/api/add-room/?room_id=${room_id}&check_in=${check_in}&check_out=${check_out}`)
-            room_data = await getRoom.json();
-            console.log(room_data);
-            // console.log(getRoom);
+            const firstRoom = roomBlocksContainer.querySelector('.room-block');
+            const newRoom = firstRoom.cloneNode(true);
 
-        //     if (roomCount >= maxRooms) {
-        //         roomLimitMsg.style.display = 'block';
-        //         return;
-        //     }
+            roomCount++;
+            roomLimitMsg.style.display = 'none';
 
-        //     const firstRoom = roomBlocksContainer.querySelector('.room-block');
-        //     const newRoom = firstRoom.cloneNode(true);
+            // Update room heading
+            newRoom.querySelector('h5').innerText = `Room ${roomCount}`;
+            newRoom.setAttribute('data-room', roomCount);
 
-        //     roomCount++;
-        //     roomLimitMsg.style.display = 'none';
+            // Update input names and reset values
+            const adultsInput = newRoom.querySelector('.adults-input');
+            adultsInput.name = `adults_${roomCount}`;
+            adultsInput.value = 1;
 
-        //     // Update room heading
-        //     newRoom.querySelector('h5').innerText = `Room ${roomCount}`;
-        //     newRoom.setAttribute('data-room', roomCount);
+            const childrenInput = newRoom.querySelector('.children-input');
+            childrenInput.name = `children_${roomCount}`;
+            childrenInput.value = 0;
 
-        //     // Update input names and reset values
-        //     const adultsInput = newRoom.querySelector('.adults-input');
-        //     adultsInput.name = `adults_${roomCount}`;
-        //     adultsInput.value = 1;
-
-        //     const childrenInput = newRoom.querySelector('.children-input');
-        //     childrenInput.name = `children_${roomCount}`;
-        //     childrenInput.value = 0;
-
-        //     roomBlocksContainer.appendChild(newRoom);
-        //     bindRoomEvents(newRoom);
-        //     updateMessage();
+            roomBlocksContainer.appendChild(newRoom);
+            bindRoomEvents(newRoom);
+            updateMessage();
         });
 
-        // // Initial room binding
-        // bindRoomEvents(document.querySelector('.room-block'));
-        // updateMessage();
+        // Initial room binding
+        bindRoomEvents(document.querySelector('.room-block'));
+        updateMessage();
     });
 </script>
 
